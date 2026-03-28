@@ -36,7 +36,7 @@ export class HealthService {
           of({
             ...this.fallbackHealth,
             timestamp: new Date().toISOString()
-          })
+          } as HealthResponse)
         )
       );
   }
