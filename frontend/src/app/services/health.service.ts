@@ -8,6 +8,22 @@ import { environment } from '../../environments/environment';
 export class HealthService {
   constructor(private readonly httpClient: HttpClient) {}
 
+  private readonly fallbackHealth: HealthResponse = {
+    status: 'DOWN',
+    service: 'backend',
+    timestamp: new Date().toISOString(),
+    dependencies: {
+      postgres: {
+        status: 'DOWN',
+        detail: 'Backend is unreachable from frontend'
+      },
+      pgvector: {
+        status: 'DOWN',
+        detail: 'Backend is unreachable from frontend'
+      }
+    }
+  };
+
   pollHealth(intervalMs = 10000): Observable<HealthResponse> {
     return timer(0, intervalMs).pipe(switchMap(() => this.getHealth()));
   }
@@ -18,19 +34,8 @@ export class HealthService {
       .pipe(
         catchError(() =>
           of({
-            status: 'DOWN',
-            service: 'backend',
-            timestamp: new Date().toISOString(),
-            dependencies: {
-              postgres: {
-                status: 'DOWN',
-                detail: 'Backend is unreachable from frontend'
-              },
-              pgvector: {
-                status: 'DOWN',
-                detail: 'Backend is unreachable from frontend'
-              }
-            }
+            ...this.fallbackHealth,
+            timestamp: new Date().toISOString()
           })
         )
       );

@@ -1,4 +1,4 @@
-import { AsyncPipe, DatePipe, NgClass } from '@angular/common';
+import { AsyncPipe, DatePipe, NgClass, NgIf } from '@angular/common';
 import { Component } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HealthResponse } from './models/health.model';
@@ -7,7 +7,7 @@ import { HealthService } from './services/health.service';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [NgClass, AsyncPipe, DatePipe],
+  imports: [NgClass, NgIf, AsyncPipe, DatePipe],
   template: `
     <div class="page-shell">
       <section class="panel" *ngIf="health$ | async as health">
