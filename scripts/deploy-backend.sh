@@ -30,6 +30,8 @@ for var_name in "${required_vars[@]}"; do
   fi
 done
 
+SSH_OPTS=(-o StrictHostKeyChecking=accept-new -o ConnectTimeout=15 -o BatchMode=yes)
+
 TEMP_ENV_FILE="${ROOT_DIR}/.deploy.backend.env"
 trap 'rm -f "${TEMP_ENV_FILE}"' EXIT
 cat > "${TEMP_ENV_FILE}" <<EOF
@@ -41,13 +43,16 @@ POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 POSTGRES_PORT=${POSTGRES_PORT}
 EOF
 
-ssh -p "${VPS_SSH_PORT}" "${VPS_USER}@${VPS_HOST}" "mkdir -p '${VPS_DEPLOY_PATH}'"
-scp -P "${VPS_SSH_PORT}" "${TEMP_ENV_FILE}" "${VPS_USER}@${VPS_HOST}:${VPS_DEPLOY_PATH}/.env"
+echo "Connecting to ${VPS_USER}@${VPS_HOST}:${VPS_SSH_PORT}..."
+ssh "${SSH_OPTS[@]}" -p "${VPS_SSH_PORT}" "${VPS_USER}@${VPS_HOST}" "mkdir -p '${VPS_DEPLOY_PATH}'"
+scp "${SSH_OPTS[@]}" -P "${VPS_SSH_PORT}" "${TEMP_ENV_FILE}" "${VPS_USER}@${VPS_HOST}:${VPS_DEPLOY_PATH}/.env"
 
+echo "Uploading backend files..."
 tar -czf - -C "${ROOT_DIR}" backend docker-compose.yml | \
-  ssh -p "${VPS_SSH_PORT}" "${VPS_USER}@${VPS_HOST}" "tar -xzf - -C '${VPS_DEPLOY_PATH}'"
+  ssh "${SSH_OPTS[@]}" -p "${VPS_SSH_PORT}" "${VPS_USER}@${VPS_HOST}" "tar -xzf - -C '${VPS_DEPLOY_PATH}'"
 
-ssh -p "${VPS_SSH_PORT}" "${VPS_USER}@${VPS_HOST}" "cd '${VPS_DEPLOY_PATH}' && docker compose up -d --build"
+echo "Starting containers..."
+ssh "${SSH_OPTS[@]}" -p "${VPS_SSH_PORT}" "${VPS_USER}@${VPS_HOST}" "cd '${VPS_DEPLOY_PATH}' && docker compose up -d --build"
 
 trap - EXIT
 rm -f "${TEMP_ENV_FILE}"
