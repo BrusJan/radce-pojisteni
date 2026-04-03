@@ -3,11 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "deploy": "bash ./scripts/deploy-all.sh",
-    "deploy:frontend": "bash ./scripts/deploy-frontend.sh",
-    "deploy:backend": "bash ./scripts/deploy-backend.sh"
-  },
-  "devDependencies": {
-    "wrangler": "^3.60.3"
+    "deploy": "bash ./scripts/deploy.sh",
+    "deploy:frontend": "bash ./scripts/deploy.sh frontend",
+    "deploy:backend": "bash ./scripts/deploy.sh backend"
   }
 }
