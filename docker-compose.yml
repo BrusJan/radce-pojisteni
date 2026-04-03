@@ -9,10 +9,14 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-insurance_advisor}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-insurance_app}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-insurance_password}
+      JWT_SECRET: ${JWT_SECRET}
+      UPLOAD_DIR: /opt/app/uploads
     depends_on:
       - db
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8080}:8080"
+    volumes:
+      - uploads:/opt/app/uploads
     restart: unless-stopped
 
   db:
@@ -31,3 +35,4 @@ services:
 
 volumes:
   db_data:
+  uploads:
