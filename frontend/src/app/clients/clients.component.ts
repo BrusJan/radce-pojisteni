@@ -53,7 +53,34 @@ type FormMode = 'hidden' | 'create' | 'edit';
             </div>
             <div class="form-field full-width">
               <label>Poznámky</label>
-              <textarea [(ngModel)]="form.notes" rows="3" placeholder="Interní poznámky..."></textarea>
+              <textarea [(ngModel)]="form.notes" rows="2" placeholder="Interní poznámky..."></textarea>
+            </div>
+
+            <!-- Client portal credentials section -->
+            <div class="credentials-section">
+              <div class="credentials-header">
+                <h4>🔑 Přístupové údaje klienta</h4>
+                <span class="credentials-hint">Nepovinné — klient se bude moci přihlásit do klientského portálu</span>
+              </div>
+              <div class="form-grid nested">
+                <div class="form-field">
+                  <label>Uživatelské jméno</label>
+                  <input [(ngModel)]="form.username" placeholder="napr.jan.novak" />
+                </div>
+                <div class="form-field">
+                  <label>Heslo</label>
+                  <div class="password-field">
+                    <input [(ngModel)]="form.password" placeholder="Heslo pro klienta" />
+                    <button type="button" class="btn-generate" (click)="generateCredentials()" title="Generovat náhodné heslo">
+                      🎲 Generovat
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="credentials-preview" *ngIf="form.username || form.password">
+                <span class="preview-label">Přihlašovací údaje:</span>
+                <span class="preview-value">{{ form.username || '(žádné jméno)' }} / {{ form.password || '(žádné heslo)' }}</span>
+              </div>
             </div>
           </div>
 
@@ -93,7 +120,7 @@ type FormMode = 'hidden' | 'create' | 'edit';
               <th>Jméno</th>
               <th>E-mail</th>
               <th>Telefon</th>
-              <th>Datum nar.</th>
+              <th>Uživ. jméno</th>
               <th>Akce</th>
             </tr>
           </thead>
@@ -102,7 +129,10 @@ type FormMode = 'hidden' | 'create' | 'edit';
               <td><strong>{{ c.lastName }} {{ c.firstName }}</strong></td>
               <td>{{ c.email || '—' }}</td>
               <td>{{ c.phone || '—' }}</td>
-              <td>{{ c.birthDate ? (c.birthDate | date:'dd.MM.yyyy') : '—' }}</td>
+              <td>
+                <span *ngIf="c.username" class="badge badge-success">{{ c.username }}</span>
+                <span *ngIf="!c.username" class="badge badge-muted">—</span>
+              </td>
               <td class="actions-cell">
                 <button class="btn-icon" (click)="openEdit(c)" title="Upravit">✏️</button>
                 <button class="btn-icon btn-icon-danger" (click)="deleteTarget = c" title="Smazat">🗑️</button>
@@ -129,18 +159,22 @@ type FormMode = 'hidden' | 'create' | 'edit';
     .data-table tr:hover td { background: #f8fafc; }
     .actions-cell { display: flex; gap: 6px; }
 
+    .badge { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .badge-success { background: #ecfdf5; color: #059669; }
+    .badge-muted { background: #f1f5f9; color: #94a3b8; }
+
     .empty-state { padding: 60px; text-align: center; color: #94a3b8; font-size: 32px; }
     .empty-state p { font-size: 14px; margin-top: 8px; }
-
     .loading { padding: 40px; text-align: center; color: #64748b; }
 
     .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-    .modal { background: #fff; border-radius: 16px; padding: 32px; width: 100%; max-width: 600px; box-shadow: 0 20px 60px rgba(0,0,0,.2); }
+    .modal { background: #fff; border-radius: 16px; padding: 32px; width: 100%; max-width: 640px; box-shadow: 0 20px 60px rgba(0,0,0,.2); max-height: 90vh; overflow-y: auto; }
     .modal-sm { max-width: 400px; }
     .modal h3 { margin: 0 0 24px; font-size: 18px; color: #1e293b; }
     .modal p { color: #64748b; margin-bottom: 24px; }
 
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 8px; }
+    .form-grid.nested { margin-top: 8px; margin-bottom: 0; }
     .form-field { display: flex; flex-direction: column; gap: 6px; }
     .form-field.full-width { grid-column: span 2; }
     .form-field label { font-size: 13px; font-weight: 600; color: #374151; }
@@ -149,6 +183,29 @@ type FormMode = 'hidden' | 'create' | 'edit';
       font-size: 14px; outline: none; font-family: inherit; resize: vertical;
     }
     .form-field input:focus, .form-field textarea:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.1); }
+
+    .password-field { display: flex; gap: 8px; }
+    .password-field input { flex: 1; }
+    .btn-generate {
+      padding: 9px 14px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;
+      font-size: 13px; font-weight: 600; color: #16a34a; cursor: pointer; white-space: nowrap; transition: all .15s;
+    }
+    .btn-generate:hover { background: #dcfce7; }
+
+    .credentials-section {
+      grid-column: span 2; background: #f8fafc; border: 1px solid #e2e8f0;
+      border-radius: 10px; padding: 20px; margin-top: 8px;
+    }
+    .credentials-header { margin-bottom: 4px; }
+    .credentials-header h4 { margin: 0 0 4px; font-size: 14px; color: #1e293b; }
+    .credentials-hint { font-size: 12px; color: #94a3b8; }
+
+    .credentials-preview {
+      margin-top: 12px; padding: 10px 14px; background: #fff; border: 1px dashed #cbd5e1;
+      border-radius: 8px; font-size: 13px; display: flex; gap: 8px; align-items: center;
+    }
+    .preview-label { color: #64748b; font-weight: 600; }
+    .preview-value { color: #1e293b; font-family: monospace; }
 
     .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
     .error-banner { background: #fef2f2; border: 1px solid #fca5a5; color: #dc2626; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 14px; }
@@ -181,7 +238,23 @@ export class ClientsComponent implements OnInit {
   ngOnInit(): void { this.load(); }
 
   private emptyForm(): ClientRequest {
-    return { firstName: '', lastName: '', email: '', phone: '', birthDate: null, address: '', notes: '' };
+    return { firstName: '', lastName: '', email: '', phone: '', birthDate: null, address: '', notes: '', username: '', password: '' };
+  }
+
+  generateCredentials(): void {
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%';
+    let password = '';
+    for (let i = 0; i < 12; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    this.form.password = password;
+
+    // Auto-generate username from name if available
+    if (this.form.firstName && this.form.lastName && !this.form.username) {
+      const base = (this.form.firstName.charAt(0) + this.form.lastName).toLowerCase().replace(/[^a-z0-9]/g, '');
+      const suffix = Math.floor(Math.random() * 1000);
+      this.form.username = `${base}${suffix}`;
+    }
   }
 
   load(): void {
@@ -202,7 +275,8 @@ export class ClientsComponent implements OnInit {
   openEdit(c: Client): void {
     this.form = {
       firstName: c.firstName, lastName: c.lastName, email: c.email ?? '',
-      phone: c.phone ?? '', birthDate: c.birthDate, address: c.address ?? '', notes: c.notes ?? ''
+      phone: c.phone ?? '', birthDate: c.birthDate, address: c.address ?? '', notes: c.notes ?? '',
+      username: c.username ?? '', password: c.password ?? ''
     };
     this.formError = '';
     this.editingId = c.id;

@@ -9,6 +9,7 @@ export interface AuthResponse {
   userId: number;
   email: string;
   fullName: string;
+  role: 'ADVISOR' | 'CLIENT';
 }
 
 export interface Client {
@@ -21,6 +22,8 @@ export interface Client {
   birthDate: string | null;
   address: string | null;
   notes: string | null;
+  username: string | null;
+  password: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -33,6 +36,8 @@ export interface ClientRequest {
   birthDate: string | null;
   address: string;
   notes: string;
+  username: string;
+  password: string;
 }
 
 export interface AdvisorFile {

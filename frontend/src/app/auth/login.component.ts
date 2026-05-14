@@ -7,6 +7,8 @@ import { environment } from '../../environments/environment';
 import { ApiResponse, AuthResponse } from '../shared/models/api.model';
 import { AuthStoreService } from '../shared/services/auth-store.service';
 
+type LoginMode = 'advisor' | 'client';
+
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -17,20 +19,38 @@ import { AuthStoreService } from '../shared/services/auth-store.service';
         <div class="login-logo">
           <span class="logo-icon">🛡️</span>
           <h1>Rádce pojištění</h1>
-          <p>Přihlaste se do svého účtu</p>
+          <p>{{ mode === 'advisor' ? 'Přihlaste se jako poradce' : 'Přihlaste se jako klient' }}</p>
+        </div>
+
+        <!-- Mode toggle -->
+        <div class="mode-toggle">
+          <button
+            class="mode-btn"
+            [class.mode-active]="mode === 'advisor'"
+            (click)="mode = 'advisor'"
+          >
+            👔 Poradce
+          </button>
+          <button
+            class="mode-btn"
+            [class.mode-active]="mode === 'client'"
+            (click)="mode = 'client'"
+          >
+            👤 Klient
+          </button>
         </div>
 
         <form (ngSubmit)="onSubmit()" #f="ngForm">
           <div class="form-field">
-            <label for="email">E-mail</label>
+            <label for="email">{{ mode === 'advisor' ? 'E-mail' : 'Uživatelské jméno' }}</label>
             <input
               id="email"
-              type="email"
+              type="text"
               name="email"
               [(ngModel)]="email"
-              placeholder="vas@email.cz"
+              [placeholder]="mode === 'advisor' ? 'vas@email.cz' : 'Uživatelské jméno'"
               required
-              autocomplete="email"
+              [autocomplete]="mode === 'advisor' ? 'email' : 'username'"
             />
           </div>
           <div class="form-field">
@@ -75,11 +95,39 @@ import { AuthStoreService } from '../shared/services/auth-store.service';
     }
     .login-logo {
       text-align: center;
-      margin-bottom: 32px;
+      margin-bottom: 24px;
     }
     .logo-icon { font-size: 48px; }
     h1 { margin: 12px 0 4px; font-size: 22px; color: #1e293b; }
     p { color: #64748b; margin: 0; font-size: 14px; }
+
+    .mode-toggle {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      background: #f1f5f9;
+      border-radius: 10px;
+      padding: 4px;
+    }
+    .mode-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      background: transparent;
+      color: #64748b;
+      transition: all .2s;
+    }
+    .mode-btn:hover { color: #374151; }
+    .mode-btn.mode-active {
+      background: #fff;
+      color: #6366f1;
+      box-shadow: 0 1px 4px rgba(0,0,0,.1);
+    }
+
     .form-field { margin-bottom: 20px; }
     label { display: block; font-weight: 600; font-size: 13px; color: #374151; margin-bottom: 6px; }
     input {
@@ -102,6 +150,7 @@ import { AuthStoreService } from '../shared/services/auth-store.service';
   `]
 })
 export class LoginComponent {
+  mode: LoginMode = 'advisor';
   email = '';
   password = '';
   loading = false;
@@ -117,21 +166,29 @@ export class LoginComponent {
     this.loading = true;
     this.errorMessage = '';
 
+    const endpoint = this.mode === 'advisor' ? '/auth/login' : '/auth/client-login';
+
     this.http.post<ApiResponse<AuthResponse>>(
-      `${environment.apiBaseUrl}/auth/login`,
+      `${environment.apiBaseUrl}${endpoint}`,
       { email: this.email, password: this.password }
     ).subscribe({
       next: (res) => {
         if (res.success) {
           this.authStore.save(res.data);
-          this.router.navigate(['/dashboard']);
+          if (res.data.role === 'CLIENT') {
+            this.router.navigate(['/client']);
+          } else {
+            this.router.navigate(['/dashboard']);
+          }
         } else {
           this.errorMessage = res.message ?? 'Přihlášení selhalo';
           this.loading = false;
         }
       },
       error: () => {
-        this.errorMessage = 'Neplatný e-mail nebo heslo';
+        this.errorMessage = this.mode === 'advisor'
+          ? 'Neplatný e-mail nebo heslo'
+          : 'Neplatné uživatelské jméno nebo heslo';
         this.loading = false;
       }
     });

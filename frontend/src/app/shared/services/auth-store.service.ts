@@ -28,4 +28,14 @@ export class AuthStoreService {
   isLoggedIn(): boolean {
     return !!this.getToken();
   }
+
+  isAdvisor(): boolean {
+    const user = this.getUser();
+    return user?.role === 'ADVISOR';
+  }
+
+  isClient(): boolean {
+    const user = this.getUser();
+    return user?.role === 'CLIENT';
+  }
 }

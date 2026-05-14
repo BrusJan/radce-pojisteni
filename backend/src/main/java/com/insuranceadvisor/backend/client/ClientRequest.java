@@ -9,5 +9,7 @@ public record ClientRequest(
     String phone,
     LocalDate birthDate,
     String address,
-    String notes
+    String notes,
+    String username,
+    String password
 ) {}

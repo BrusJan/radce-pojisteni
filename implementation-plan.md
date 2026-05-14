@@ -28,13 +28,6 @@ Build a minimal end-to-end baseline that can be deployed with one command and ma
   - Cloudflare + VPS setup guide.
   - Manual test checklist.
 
-### Deliverables
-- Minimal Angular app for health polling.
-- Spring Boot app with detailed health response.
-- `docker-compose.yml` for backend and PostgreSQL/pgvector.
-- Unified deploy scripts with placeholders for credentials/config.
-- Deployment tutorial and validation checklist.
-
 ### Manual Validation Gate (Step 1)
 - Frontend URL loads.
 - Health polling updates every 10 seconds.
@@ -57,9 +50,53 @@ Improve observability and resilience before feature growth.
 ### Validation Gate
 - User sees clear status and actionable error messages for FE/BE/DB connection issues.
 
-## Step 3 - CRM Foundation
-- Data model for salespeople, clients, notes, contracts, interactions.
-- AuthN/AuthZ with role separation (salesperson vs customer).
+## Step 3 - CRM Foundation ✅ COMPLETED
+
+### Goal
+Client registry with advisor-managed credentials and role-based access control.
+
+### Scope
+- **Clients as user accounts:** Clients table stores `username` and `password` (BCrypt-hashed) so clients can log in.
+- **Advisor client management:** Advisor can create/edit clients, set username/password, and generate random credentials.
+- **Role-based authZ:** Two roles — `ADVISOR` and `CLIENT`.
+  - Advisors access `/clients/**`, `/files/**`, and the full dashboard.
+  - Clients access only the client portal (empty placeholder for now).
+  - JWT tokens carry role claim; Spring Security enforces role-based access.
+- **Dual login:** Login page has a toggle to switch between "Poradce" (advisor) and "Klient" (client) login modes.
+  - Advisor login: `POST /auth/login` (email + password).
+  - Client login: `POST /auth/client-login` (username + password).
+- **Client portal:** Empty placeholder page with header, logout, and "coming soon" message.
+- **Password security:** Passwords are BCrypt-hashed before storage. Password hashes are never exposed to the frontend (replaced with `__SET__` sentinel).
+
+### DB Changes
+- Added `username VARCHAR(255)` and `password VARCHAR(255)` columns to `clients` table.
+
+### Backend Changes
+- `JwtService`: Separate `generateAdvisor()` and `generateClient()` methods with role claim.
+- `JwtAuthFilter`: Extracts role from JWT, sets `ROLE_ADVISOR` or `ROLE_CLIENT` authority.
+- `SecurityConfig`: `/clients/**` and `/files/**` require `ROLE_ADVISOR`; other authenticated routes accept any role.
+- `AuthService`: `loginAdvisor()` (by email) and `loginClient()` (by username).
+- `AuthController`: `/auth/login` and `/auth/client-login` endpoints.
+- `ClientController`: Passwords are hashed on create/update; list/get return `__SET__` instead of real hash.
+- `ClientRepository`: `findByUsername()` for client login; `update()` preserves existing password when `__SET__` sentinel is received.
+- `Client` record: Added `username` and `password` fields.
+- `ClientRequest` record: Added `username` and `password` fields.
+
+### Frontend Changes
+- `LoginComponent`: Mode toggle (advisor/client), dynamic label/placeholder, calls appropriate endpoint.
+- `ClientDashboardComponent`: New empty portal page with header and logout.
+- `ClientsComponent`: Added credentials section with username/password fields and "Generovat" button.
+- `AuthStoreService`: Added `isAdvisor()` and `isClient()` helpers.
+- `auth.guard.ts`: Added `advisorGuard` and `clientGuard` route guards.
+- `main.ts`: New `/client` route with `clientGuard`; dashboard uses `advisorGuard`.
+- `api.model.ts`: `AuthResponse` has `role` field; `Client` and `ClientRequest` have `username`/`password`.
+
+### Validation Gate
+- Advisor can log in, create clients with credentials, see client list.
+- Client can log in with username/password, sees empty portal.
+- Client cannot access `/clients` or `/files` endpoints (403).
+- Advisor cannot access client portal route (redirected to dashboard).
+- Password hashes are never exposed in API responses.
 
 ## Step 4 - Document Ingestion and RAG Core
 - Manual ZIP import.

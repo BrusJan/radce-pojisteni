@@ -13,6 +13,8 @@ public record Client(
     LocalDate birthDate,
     String address,
     String notes,
+    String username,
+    String password,
     Instant createdAt,
     Instant updatedAt
 ) {}

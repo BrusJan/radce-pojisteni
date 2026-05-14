@@ -28,6 +28,8 @@ public class ClientRepository {
         bd != null ? bd.toLocalDate() : null,
         rs.getString("address"),
         rs.getString("notes"),
+        rs.getString("username"),
+        rs.getString("password"),
         rs.getTimestamp("created_at").toInstant(),
         rs.getTimestamp("updated_at").toInstant()
     );
@@ -52,12 +54,20 @@ public class ClientRepository {
     return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
   }
 
+  public Optional<Client> findByUsername(String username) {
+    var rows = jdbc.query(
+        "SELECT * FROM clients WHERE username = ?",
+        rowMapper, username
+    );
+    return rows.isEmpty() ? Optional.empty() : Optional.of(rows.get(0));
+  }
+
   public Client create(Long advisorId, ClientRequest req) {
     var keyHolder = new GeneratedKeyHolder();
     jdbc.update(con -> {
       PreparedStatement ps = con.prepareStatement(
-          "INSERT INTO clients (advisor_id, first_name, last_name, email, phone, birth_date, address, notes) " +
-          "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+          "INSERT INTO clients (advisor_id, first_name, last_name, email, phone, birth_date, address, notes, username, password) " +
+          "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
           Statement.RETURN_GENERATED_KEYS
       );
       ps.setLong(1, advisorId);
@@ -68,6 +78,8 @@ public class ClientRepository {
       ps.setObject(6, req.birthDate());
       ps.setString(7, req.address());
       ps.setString(8, req.notes());
+      ps.setString(9, req.username());
+      ps.setString(10, req.password());
       return ps;
     }, keyHolder);
 
@@ -76,11 +88,21 @@ public class ClientRepository {
   }
 
   public Optional<Client> update(Long id, Long advisorId, ClientRequest req) {
+    // If password is __SET__, keep the existing password (don't update it)
+    String existingPassword = null;
+    if ("__SET__".equals(req.password())) {
+      existingPassword = findByIdAndAdvisor(id, advisorId)
+          .map(Client::password)
+          .orElse(null);
+    }
+
     int updated = jdbc.update(
-        "UPDATE clients SET first_name=?, last_name=?, email=?, phone=?, birth_date=?, address=?, notes=?, updated_at=NOW() " +
+        "UPDATE clients SET first_name=?, last_name=?, email=?, phone=?, birth_date=?, address=?, notes=?, username=?, password=?, updated_at=NOW() " +
         "WHERE id=? AND advisor_id=?",
         req.firstName(), req.lastName(), req.email(), req.phone(),
-        req.birthDate(), req.address(), req.notes(), id, advisorId
+        req.birthDate(), req.address(), req.notes(), req.username(),
+        existingPassword != null ? existingPassword : req.password(),
+        id, advisorId
     );
     if (updated == 0) return Optional.empty();
     return findByIdAndAdvisor(id, advisorId);

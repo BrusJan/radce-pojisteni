@@ -24,10 +24,22 @@ public class JwtService {
     this.expirationMs = expirationMs;
   }
 
-  public String generate(Long userId, String email) {
+  public String generateAdvisor(Long userId, String email) {
     return Jwts.builder()
         .subject(String.valueOf(userId))
         .claim("email", email)
+        .claim("role", "ADVISOR")
+        .issuedAt(new Date())
+        .expiration(new Date(System.currentTimeMillis() + expirationMs))
+        .signWith(key)
+        .compact();
+  }
+
+  public String generateClient(Long clientId, String username) {
+    return Jwts.builder()
+        .subject(String.valueOf(clientId))
+        .claim("username", username)
+        .claim("role", "CLIENT")
         .issuedAt(new Date())
         .expiration(new Date(System.currentTimeMillis() + expirationMs))
         .signWith(key)
@@ -53,5 +65,9 @@ public class JwtService {
 
   public Long getUserId(String token) {
     return Long.valueOf(parse(token).getSubject());
+  }
+
+  public String getRole(String token) {
+    return parse(token).get("role", String.class);
   }
 }

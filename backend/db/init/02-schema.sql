@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 
--- Clients managed by advisors
+-- Clients managed by advisors (also serve as client-user accounts)
 CREATE TABLE IF NOT EXISTS clients (
     id           BIGSERIAL PRIMARY KEY,
     advisor_id   BIGINT       NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS clients (
     birth_date   DATE,
     address      TEXT,
     notes        TEXT,
+    username     VARCHAR(255),
+    password     VARCHAR(255),
     created_at   TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     updated_at   TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
@@ -35,7 +37,6 @@ CREATE TABLE IF NOT EXISTS files (
 );
 
 -- Default admin user (password: admin123 — bcrypt hash)
--- Default admin user (password: admin123)
 INSERT INTO users (email, password, full_name)
 VALUES ('admin@example.com', '$2b$12$f6KWns09gC7ZXQ7spty/Qun2P6tlMuXzBbCW0RjIiZrFGGFu3zuJq', 'Admin User')
 ON CONFLICT (email) DO NOTHING;
