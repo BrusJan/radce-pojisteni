@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient, HttpEventType } from '@angular/common/http';
+import { HttpClient, HttpEventType, HttpResponse } from '@angular/common/http';
 import { NgFor, NgIf, DatePipe, DecimalPipe } from '@angular/common';
 import { environment } from '../../environments/environment';
-import { ApiResponse, AdvisorFile } from '../shared/models/api.model';
+import { ApiResponse, AdvisorFile } from '../../shared/models/api.model';
 
 @Component({
   selector: 'app-files',
@@ -16,7 +16,7 @@ import { ApiResponse, AdvisorFile } from '../shared/models/api.model';
           <p>Správa dokumentů a souborů</p>
         </div>
         <label class="btn-primary upload-btn">
-          <input type="file" (change)="onFileSelected($event)" accept=".pdf,.doc,.docx,.txt,.xls,.xlsx,.csv" style="display:none" multiple />
+          <input type="file" (change)="onFileSelected($event)" accept=".pdf,.doc,.docx,.txt,.xls,.xlsx,.csv,.md" style="display:none" multiple />
           + Nahrát soubor
         </label>
       </div>
@@ -180,7 +180,7 @@ export class FilesComponent implements OnInit {
       next: (event) => {
         if (event.type === HttpEventType.UploadProgress && event.total) {
           this.uploadProgress = Math.round(100 * event.loaded / event.total);
-        } else if (event.type === HttpEventType.Response) {
+        } else if (event instanceof HttpResponse) {
           this.uploading = false;
           this.load();
         }
