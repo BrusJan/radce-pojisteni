@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { HttpClient, HttpEventType, HttpResponse } from '@angular/common/http';
 import { NgFor, NgIf, DatePipe, DecimalPipe } from '@angular/common';
 import { environment } from '../../environments/environment';
-import { ApiResponse, AdvisorFile } from '../../shared/models/api.model';
+import { AdvisorFile, ApiResponse } from '../shared/models/api.model';
 
 @Component({
   selector: 'app-files',
