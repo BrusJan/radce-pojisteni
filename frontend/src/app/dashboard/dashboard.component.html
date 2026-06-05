@@ -1,0 +1,29 @@
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span>🛡️</span>
+      <span class="logo-text">Rádce pojištění</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a routerLink="/dashboard" routerLinkActive="active">
+        <span class="icon">🏠</span>
+        <span>Dashboard</span>
+      </a>
+      <a routerLink="/files" routerLinkActive="active">
+        <span class="icon">📁</span>
+        <span>Soubory</span>
+      </a>
+      <a routerLink="/clients" routerLinkActive="active">
+        <span class="icon">👥</span>
+        <span>Klienti</span>
+      </a>
+      <a routerLink="/chat" routerLinkActive="active">
+        <span class="icon">💬</span>
+        <span>Chat</span>
+      </a>
+    </nav>
+  </aside>
+  <main class="content">
+    <router-outlet></router-outlet>
+  </main>
+</div>
